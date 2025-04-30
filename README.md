@@ -39,8 +39,6 @@ A powerful, minimalist, and responsive note-taking application built with **Reac
 
 ## 📸 Screenshots
 
-> _Located in `assets/` folder. Replace placeholders if needed._
-
 ### 🔐 Login Page
 
 ![Login Screenshot](assets/loginD.png)
