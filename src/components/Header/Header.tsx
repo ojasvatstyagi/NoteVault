@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Moon, Sun, Grid, List, Plus, SlidersHorizontal, LogOut, User, Settings } from 'lucide-react';
+import { Search, Moon, Sun, Grid, List, Plus, SlidersHorizontal, LogOut, User, Settings, Menu, X as XIcon } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -31,6 +31,7 @@ const Header: React.FC = () => {
   const [isNewNoteModalOpen, setIsNewNoteModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -102,10 +103,17 @@ const Header: React.FC = () => {
             <h1 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
               NoteVault
             </h1>
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="ml-4 p-2 rounded-md text-gray-500 dark:text-gray-400 lg:hidden"
+            >
+              {isMobileMenuOpen ? <XIcon className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
           
-          <div className="flex-1 max-w-xl mx-4">
-            <div className={`relative rounded-md shadow-sm transition-all ${
+          <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+            <div className={`relative rounded-md shadow-sm transition-all w-full ${
               isSearchFocused ? 'ring-2 ring-indigo-500' : ''
             }`}>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,16 +131,16 @@ const Header: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button 
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="hidden sm:flex p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
             >
               {viewMode === 'grid' ? <List className="h-5 w-5" /> : <Grid className="h-5 w-5" />}
             </button>
             
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -167,10 +175,10 @@ const Header: React.FC = () => {
             
             <button
               onClick={() => setIsNewNoteModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              className="inline-flex items-center px-3 sm:px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
               aria-label="Create new note"
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">New Note</span>
             </button>
 
@@ -214,6 +222,27 @@ const Header: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Mobile Search Bar */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden pb-4">
+            <div className={`relative rounded-md shadow-sm transition-all ${
+              isSearchFocused ? 'ring-2 ring-indigo-500' : ''
+            }`}>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search notes..."
+                className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                onChange={handleSearch}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* New Note Modal */}

@@ -29,7 +29,6 @@ const NotesList: React.FC = () => {
       if (activeTag === 'archived') {
         filtered = filtered.filter((note) => note.isArchived);
       } else if (activeTag.startsWith('reminder-')) {
-        // Handle reminder-specific filtering
         const noteId = activeTag.replace('reminder-', '');
         filtered = filtered.filter((note) => note.id === noteId);
       } else {
@@ -42,7 +41,6 @@ const NotesList: React.FC = () => {
     }
 
     return filtered.sort((a, b) => {
-      // Only apply pinned sorting when not in archived view and not in reminder view
       if (!activeTag?.startsWith('reminder-') && activeTag !== 'archived') {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
@@ -68,7 +66,7 @@ const NotesList: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
         <p className="text-lg mb-2">No notes found</p>
-        <p className="text-sm">
+        <p className="text-sm text-center px-4">
           {searchTerm 
             ? 'Try a different search term'
             : activeTag
@@ -85,7 +83,7 @@ const NotesList: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-0">
       {/* Bulk Actions */}
       {selectedNotes.length > 0 && (
         <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Archive, Tag, Download, Upload, Home, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Archive, Tag, Download, Upload, Home, Bell, Menu, X } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { useTheme } from '../../context/ThemeContext';
 import { parseImportedFile, formatReminderDate } from '../../utils/helpers';
@@ -17,6 +17,7 @@ const Sidebar: React.FC = () => {
   const { isDarkMode } = useTheme();
   const { addToast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const tags = getAllTags();
 
   // Get all notes with active reminders
@@ -28,12 +29,13 @@ const Sidebar: React.FC = () => {
     return dateA.getTime() - dateB.getTime();
   });
 
-  const handleTagClick = (tag: string) => {
+  const handleTagClick = (tag: string | null) => {
     if (activeTag === tag) {
       setActiveTag(null);
     } else {
       setActiveTag(tag);
     }
+    setIsMobileMenuOpen(false);
   };
 
   const handleImportClick = () => {
@@ -55,7 +57,6 @@ const Sidebar: React.FC = () => {
         addToast('Failed to import notes. Invalid file format.', 'error');
       }
       
-      // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -99,84 +100,118 @@ const Sidebar: React.FC = () => {
     </button>
   );
 
-  return (
-    <aside className="w-64 border-r border-gray-200 dark:border-gray-700 h-[calc(100vh-64px)] overflow-y-auto py-4 px-2 bg-white dark:bg-gray-900 transition-colors duration-200">
-      <div className="space-y-4">
+  const sidebarContent = (
+    <div className="space-y-4">
+      <div>
+        <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Navigation
+        </h3>
+        <SidebarItem
+          icon={<Home className="h-4 w-4" />}
+          label="Home"
+          onClick={() => handleTagClick(null)}
+          active={activeTag === null}
+        />
+        <SidebarItem
+          icon={<Archive className="h-4 w-4" />}
+          label="Archive"
+          onClick={() => handleTagClick('archived')}
+          active={activeTag === 'archived'}
+        />
+        <SidebarItem
+          icon={<Download className="h-4 w-4" />}
+          label="Export Notes"
+          onClick={handleExportClick}
+        />
+        <SidebarItem
+          icon={<Upload className="h-4 w-4" />}
+          label="Import Notes"
+          onClick={handleImportClick}
+        />
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept=".json"
+          className="hidden"
+        />
+      </div>
+
+      {notesWithReminders.length > 0 && (
         <div>
           <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Navigation
+            Reminders
           </h3>
-          <SidebarItem
-            icon={<Home className="h-4 w-4" />}
-            label="Home"
-            onClick={() => setActiveTag(null)}
-            active={activeTag === null}
-          />
-          <SidebarItem
-            icon={<Archive className="h-4 w-4" />}
-            label="Archive"
-            onClick={() => setActiveTag('archived')}
-            active={activeTag === 'archived'}
-          />
-          <SidebarItem
-            icon={<Download className="h-4 w-4" />}
-            label="Export Notes"
-            onClick={handleExportClick}
-          />
-          <SidebarItem
-            icon={<Upload className="h-4 w-4" />}
-            label="Import Notes"
-            onClick={handleImportClick}
-          />
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".json"
-            className="hidden"
-          />
+          <div className="space-y-1">
+            {notesWithReminders.map((note) => (
+              <SidebarItem
+                key={note.id}
+                icon={<Bell className="h-4 w-4" />}
+                label={note.title || 'Untitled Note'}
+                subtext={formatReminderDate(note.reminder!)}
+                onClick={() => handleTagClick(`reminder-${note.id}`)}
+                active={activeTag === `reminder-${note.id}`}
+              />
+            ))}
+          </div>
         </div>
+      )}
 
-        {notesWithReminders.length > 0 && (
-          <div>
-            <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Reminders
-            </h3>
-            <div className="space-y-1">
-              {notesWithReminders.map((note) => (
-                <SidebarItem
-                  key={note.id}
-                  icon={<Bell className="h-4 w-4" />}
-                  label={note.title || 'Untitled Note'}
-                  subtext={formatReminderDate(note.reminder!)}
-                  onClick={() => handleTagClick(`reminder-${note.id}`)}
-                  active={activeTag === `reminder-${note.id}`}
-                />
-              ))}
-            </div>
+      {tags.length > 0 && (
+        <div>
+          <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            Tags
+          </h3>
+          <div className="space-y-1">
+            {tags.map((tag) => (
+              <SidebarItem
+                key={tag}
+                icon={<Tag className="h-4 w-4" />}
+                label={tag}
+                onClick={() => handleTagClick(tag)}
+                active={activeTag === tag}
+              />
+            ))}
           </div>
-        )}
+        </div>
+      )}
+    </div>
+  );
 
-        {tags.length > 0 && (
-          <div>
-            <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Tags
-            </h3>
-            <div className="space-y-1">
-              {tags.map((tag) => (
-                <SidebarItem
-                  key={tag}
-                  icon={<Tag className="h-4 w-4" />}
-                  label={tag}
-                  onClick={() => handleTagClick(tag)}
-                  active={activeTag === tag}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </aside>
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-indigo-600 text-white shadow-lg"
+      >
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Mobile Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-900 transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-full overflow-y-auto py-4 px-2">
+          {sidebarContent}
+        </div>
+      </aside>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-64 border-r border-gray-200 dark:border-gray-700 h-[calc(100vh-64px)] overflow-y-auto py-4 px-2 bg-white dark:bg-gray-900 transition-colors duration-200">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

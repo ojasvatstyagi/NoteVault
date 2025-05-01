@@ -14,19 +14,55 @@ const AuthForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
+  const validateForm = () => {
+    if (isSignUp) {
+      if (!username.trim()) {
+        setError('Username is required');
+        return false;
+      }
+      if (username.length < 3) {
+        setError('Username must be at least 3 characters long');
+        return false;
+      }
+      if (!agreedToTerms) {
+        setError('Please agree to the Terms of Service and Privacy Policy');
+        return false;
+      }
+    }
+    if (!email.trim()) {
+      setError('Email is required');
+      return false;
+    }
+    if (!password.trim()) {
+      setError('Password is required');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignUp) {
-        if (!agreedToTerms) {
-          setError('Please agree to the Terms of Service and Privacy Policy');
-          setLoading(false);
-          return;
-        }
-        await signUp(email, password);
+        await signUp(email, password, username);
+        // After successful signup, switch to login mode
+        setIsSignUp(false);
+        setEmail('');
+        setPassword('');
+        setUsername('');
+        setAgreedToTerms(false);
       } else {
         await signIn(email, password);
       }
@@ -177,6 +213,10 @@ const AuthForm: React.FC = () => {
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError(null);
+                setEmail('');
+                setPassword('');
+                setUsername('');
+                setAgreedToTerms(false);
               }}
               className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
             >
